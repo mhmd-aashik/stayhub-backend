@@ -1,0 +1,18 @@
+{
+  "name": "fullstack-system-design",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@nestjs/cli": "^12.0.8",
+    "@types/bun": "latest"
+  },
+  "scripts": {
+    "dev:gateway": "bun run --cwd apps/api-gateway start:dev",
+    "build:gateway": "bun run --cwd apps/api-gateway build",
+    "test:gateway": "bun run --cwd apps/api-gateway test"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
