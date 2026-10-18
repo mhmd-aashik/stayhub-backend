@@ -8,7 +8,7 @@ import {
   properties,
   Property,
 } from '../database/schema/properties.schema.js';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { async } from 'rxjs';
 
 @Injectable()
@@ -22,11 +22,28 @@ export class PropertiesRepository {
     return this.connection.db.select().from(properties);
   }
 
+  async findPublished(): Promise<Property[]> {
+    return this.connection.db
+      .select()
+      .from(properties)
+      .where(eq(properties.status, 'PUBLISHED'));
+  }
+
   async findById(id: string): Promise<Property | undefined> {
     const [property] = await this.connection.db
       .select()
       .from(properties)
       .where(eq(properties.id, id))
+      .limit(1);
+
+    return property;
+  }
+
+  async findPublishedById(id: string): Promise<Property | undefined> {
+    const [property] = await this.connection.db
+      .select()
+      .from(properties)
+      .where(and(eq(properties.id, id), eq(properties.status, 'PUBLISHED')))
       .limit(1);
 
     return property;
