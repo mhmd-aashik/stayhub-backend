@@ -1,6 +1,7 @@
 import { NotFoundException } from '@nestjs/common';
-import { Property } from '../database/schema/properties.schema.js';
+import { NewProperty, Property } from '../database/schema/properties.schema.js';
 import { PropertiesRepository } from './properties.repository.js';
+import { CreatePropertyDto } from './dto/create-property.dto.js';
 
 export class PropertiesService {
   constructor(private readonly propertiesRepository: PropertiesRepository) {}
@@ -17,5 +18,22 @@ export class PropertiesService {
     }
 
     return property;
+  }
+
+  async create(dto: CreatePropertyDto, hostId: string): Promise<Property> {
+    const data: NewProperty = {
+      hostId,
+      title: dto.title,
+      description: dto.description,
+      city: dto.city,
+      country: dto.country,
+      address: dto.address,
+      pricePerNight: dto.pricePerNight.toFixed(2),
+      maxGuests: dto.maxGuests,
+      bedrooms: dto.bedrooms,
+      bathrooms: dto.bathrooms,
+    };
+
+    return this.propertiesRepository.create(data);
   }
 }
