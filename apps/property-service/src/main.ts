@@ -3,12 +3,21 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import { DATABASE_CONNECTION } from './database/database.provider.js';
 import { sql } from 'drizzle-orm';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Enable SIGTERM and SIGINT shutdown handling
   app.enableShutdownHooks();
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
 
   const connection = app.get<DatabaseConnection>(DATABASE_CONNECTION);
 
