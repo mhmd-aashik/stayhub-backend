@@ -4,6 +4,7 @@ import { AppService } from './app.service.js';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { HealthResolver } from './health.resolver.js';
+import { PropertiesResolver } from './properties/properties.resolver.js';
 
 @Module({
   imports: [
@@ -13,9 +14,8 @@ import { HealthResolver } from './health.resolver.js';
       sortSchema: true,
       graphiql: process.env.NODE_ENV !== 'production',
     }),
-    HealthResolver,
   ],
   controllers: [AppController],
-  providers: [AppService, HealthResolver],
+  providers: [AppService, HealthResolver, HealthResolver, PropertiesResolver],
 })
 export class AppModule {}
