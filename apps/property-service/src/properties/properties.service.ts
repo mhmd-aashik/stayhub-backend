@@ -1,11 +1,14 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, NotFoundException } from '@nestjs/common';
 import { NewProperty, Property } from '../database/schema/properties.schema.js';
 import { PropertiesRepository } from './properties.repository.js';
 import { CreatePropertyDto } from './dto/create-property.dto.js';
 import { UpdatePropertyDto } from './dto/update-property.dto.js';
 
 export class PropertiesService {
-  constructor(private readonly propertiesRepository: PropertiesRepository) {}
+  constructor(
+    @Inject(PropertiesRepository)
+    private readonly propertiesRepository: PropertiesRepository,
+  ) {}
 
   async findAll(): Promise<Property[]> {
     return this.propertiesRepository.findAll();
