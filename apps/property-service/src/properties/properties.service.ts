@@ -25,8 +25,10 @@ export class PropertiesService {
     return this.propertiesRepository.findPublished();
   }
 
-  async search(filters: SearchPropertiesDto): Promise<Property[]> {
-    // Validate the price range
+  async search(
+    filters: SearchPropertiesDto,
+  ): Promise<{ properties: Property[]; total: number }> {
+    // Step 1: Validate the price range
     if (
       filters.minPrice !== undefined &&
       filters.maxPrice !== undefined &&
@@ -35,8 +37,17 @@ export class PropertiesService {
       throw new BadRequestException('minPrice cannot be greater than maxPrice');
     }
 
-    // Delegate database filtering to the repository
-    return this.propertiesRepository.search(filters);
+    // Step 2: Execute both database queries
+    const [properties, total] = await Promise.all([
+      this.propertiesRepository.search(filters),
+      this.propertiesRepository.countPublished(filters),
+    ]);
+
+    // Step 3: Return both results
+    return {
+      properties,
+      total,
+    };
   }
 
   async findById(id: string): Promise<Property> {

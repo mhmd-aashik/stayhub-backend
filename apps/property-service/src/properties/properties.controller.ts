@@ -5,18 +5,32 @@ import {
   toPublicPropertyDto,
 } from './dto/public-property.dto.js';
 import { SearchPropertiesDto } from './dto/search-properties.dto.js';
+import {
+  PaginatedPropertiesDto,
+  createPaginatedPropertiesDto,
+} from './dto/paginated-properties.dto.js';
 
 @Controller('properties')
 export class PropertiesController {
   constructor(private readonly propertiesService: PropertiesService) {}
 
   @Get()
-  async findAll(
+  async search(
     @Query() filters: SearchPropertiesDto,
-  ): Promise<PublicPropertyDto[]> {
-    const properties = await this.propertiesService.search(filters);
+  ): Promise<PaginatedPropertiesDto> {
+    // Step 1: Get records and total count
+    const { properties, total } = await this.propertiesService.search(filters);
 
-    return properties.map(toPublicPropertyDto);
+    // Step 2: Remove internal database fields
+    const data = properties.map(toPublicPropertyDto);
+
+    // Step 3: Build pagination metadata
+    return createPaginatedPropertiesDto(
+      data,
+      total,
+      filters.page,
+      filters.limit,
+    );
   }
 
   @Get(':id')
