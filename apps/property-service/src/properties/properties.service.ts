@@ -29,6 +29,19 @@ export class PropertiesService {
     return this.propertiesRepository.findByHostId(hostId);
   }
 
+  async findByIdAndHostId(id: string, hostId: string): Promise<Property> {
+    const property = await this.propertiesRepository.findByIdAndHostId(
+      id,
+      hostId,
+    );
+
+    if (!property) {
+      throw new NotFoundException('Property not found');
+    }
+
+    return property;
+  }
+
   async search(
     filters: SearchPropertiesDto,
   ): Promise<{ properties: Property[]; total: number }> {
@@ -123,11 +136,79 @@ export class PropertiesService {
     return property;
   }
 
+  async updateByHostId(
+    id: string,
+    hostId: string,
+    dto: UpdatePropertyDto,
+  ): Promise<Property> {
+    // 1. Reject empty update requests
+    if (
+      !dto ||
+      Object.values(dto).every((value) => value === undefined || value === null)
+    ) {
+      throw new BadRequestException(
+        'At least one property field must be provided',
+      );
+    }
+
+    // 2. Prepare only permitted update fields
+    const data: Parameters<PropertiesRepository['updateByHostId']>[2] = {
+      title: dto.title ?? undefined,
+      description: dto.description ?? undefined,
+      city: dto.city ?? undefined,
+      country: dto.country ?? undefined,
+      address: dto.address ?? undefined,
+      pricePerNight:
+        dto.pricePerNight == null ? undefined : dto.pricePerNight.toFixed(2),
+      maxGuests: dto.maxGuests ?? undefined,
+      bedrooms: dto.bedrooms ?? undefined,
+      bathrooms: dto.bathrooms ?? undefined,
+    };
+
+    // 3. Update only if the property belongs to this host
+    const property = await this.propertiesRepository.updateByHostId(
+      id,
+      hostId,
+      data,
+    );
+
+    // 4. Handle missing or unowned properties
+    if (!property) {
+      throw new NotFoundException('Property not found');
+    }
+
+    // 5. Return the updated property
+    return property;
+  }
+
   async delete(id: string): Promise<Property> {
     const property = await this.propertiesRepository.delete(id);
 
     if (!property) {
       throw new NotFoundException(`Property with ID ${id} not found`);
+    }
+
+    return property;
+  }
+
+  async deleteByHostId(id: string, hostId: string): Promise<Property> {
+    const property = await this.propertiesRepository.deleteByHostId(id, hostId);
+
+    if (!property) {
+      throw new NotFoundException('Property not found');
+    }
+
+    return property;
+  }
+
+  async archiveByHostId(id: string, hostId: string): Promise<Property> {
+    const property = await this.propertiesRepository.archiveByHostId(
+      id,
+      hostId,
+    );
+
+    if (!property) {
+      throw new NotFoundException('Property not found');
     }
 
     return property;

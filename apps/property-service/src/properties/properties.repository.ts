@@ -221,4 +221,20 @@ export class PropertiesRepository {
 
     return property;
   }
+
+  async archiveByHostId(
+    id: string,
+    hostId: string,
+  ): Promise<Property | undefined> {
+    const [property] = await this.connection.db
+      .update(properties)
+      .set({
+        status: 'ARCHIVED',
+        updatedAt: new Date(),
+      })
+      .where(and(eq(properties.id, id), eq(properties.hostId, hostId)))
+      .returning();
+
+    return property;
+  }
 }
