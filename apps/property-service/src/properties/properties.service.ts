@@ -25,6 +25,10 @@ export class PropertiesService {
     return this.propertiesRepository.findPublished();
   }
 
+  async findByHostId(hostId: string): Promise<Property[]> {
+    return this.propertiesRepository.findByHostId(hostId);
+  }
+
   async search(
     filters: SearchPropertiesDto,
   ): Promise<{ properties: Property[]; total: number }> {

@@ -98,6 +98,27 @@ export class PropertiesRepository {
     return property;
   }
 
+  async findByIdAndHostId(
+    id: string,
+    hostId: string,
+  ): Promise<Property | undefined> {
+    const [property] = await this.connection.db
+      .select()
+      .from(properties)
+      .where(and(eq(properties.id, id), eq(properties.hostId, hostId)))
+      .limit(1);
+
+    return property;
+  }
+
+  async findByHostId(hostId: string): Promise<Property[]> {
+    return this.connection.db
+      .select()
+      .from(properties)
+      .where(eq(properties.hostId, hostId))
+      .orderBy(desc(properties.createdAt), desc(properties.id));
+  }
+
   async findPublishedById(id: string): Promise<Property | undefined> {
     const [property] = await this.connection.db
       .select()
@@ -150,10 +171,52 @@ export class PropertiesRepository {
     return property;
   }
 
+  async updateByHostId(
+    id: string,
+    hostId: string,
+    data: Partial<
+      Pick<
+        NewProperty,
+        | 'title'
+        | 'description'
+        | 'city'
+        | 'country'
+        | 'address'
+        | 'pricePerNight'
+        | 'maxGuests'
+        | 'bedrooms'
+        | 'bathrooms'
+      >
+    >,
+  ): Promise<Property | undefined> {
+    const [property] = await this.connection.db
+      .update(properties)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(properties.id, id), eq(properties.hostId, hostId)))
+      .returning();
+
+    return property;
+  }
+
   async delete(id: string): Promise<Property | undefined> {
     const [property] = await this.connection.db
       .delete(properties)
       .where(eq(properties.id, id))
+      .returning();
+
+    return property;
+  }
+
+  async deleteByHostId(
+    id: string,
+    hostId: string,
+  ): Promise<Property | undefined> {
+    const [property] = await this.connection.db
+      .delete(properties)
+      .where(and(eq(properties.id, id), eq(properties.hostId, hostId)))
       .returning();
 
     return property;
