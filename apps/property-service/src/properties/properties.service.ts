@@ -1,9 +1,16 @@
-import { BadRequestException, Inject, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { NewProperty, Property } from '../database/schema/properties.schema.js';
 import { PropertiesRepository } from './properties.repository.js';
 import { CreatePropertyDto } from './dto/create-property.dto.js';
 import { UpdatePropertyDto } from './dto/update-property.dto.js';
+import { SearchPropertiesDto } from './dto/search-properties.dto.js';
 
+@Injectable()
 export class PropertiesService {
   constructor(
     @Inject(PropertiesRepository)
@@ -18,7 +25,21 @@ export class PropertiesService {
     return this.propertiesRepository.findPublished();
   }
 
-  async findById(id: string): Promise<Property | undefined> {
+  async search(filters: SearchPropertiesDto): Promise<Property[]> {
+    // Validate the price range
+    if (
+      filters.minPrice !== undefined &&
+      filters.maxPrice !== undefined &&
+      filters.minPrice > filters.maxPrice
+    ) {
+      throw new BadRequestException('minPrice cannot be greater than maxPrice');
+    }
+
+    // Delegate database filtering to the repository
+    return this.propertiesRepository.search(filters);
+  }
+
+  async findById(id: string): Promise<Property> {
     const property = await this.propertiesRepository.findById(id);
 
     if (!property) {

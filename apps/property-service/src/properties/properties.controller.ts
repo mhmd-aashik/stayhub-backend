@@ -1,17 +1,21 @@
-import { Controller, Get, Param, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe, Query } from '@nestjs/common';
 import { PropertiesService } from './properties.service.js';
 import {
   PublicPropertyDto,
   toPublicPropertyDto,
 } from './dto/public-property.dto.js';
+import { SearchPropertiesDto } from './dto/search-properties.dto.js';
 
 @Controller('properties')
 export class PropertiesController {
   constructor(private readonly propertiesService: PropertiesService) {}
 
   @Get()
-  async findAll(): Promise<PublicPropertyDto[]> {
-    const properties = await this.propertiesService.findPublished();
+  async findAll(
+    @Query() filters: SearchPropertiesDto,
+  ): Promise<PublicPropertyDto[]> {
+    const properties = await this.propertiesService.search(filters);
+
     return properties.map(toPublicPropertyDto);
   }
 

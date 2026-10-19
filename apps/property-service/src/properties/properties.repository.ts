@@ -8,8 +8,9 @@ import {
   properties,
   Property,
 } from '../database/schema/properties.schema.js';
-import { and, eq } from 'drizzle-orm';
+import { and, desc, eq, gte, ilike, lte, SQL } from 'drizzle-orm';
 import { async } from 'rxjs';
+import { SearchPropertiesDto } from './dto/search-properties.dto.js';
 
 @Injectable()
 export class PropertiesRepository {
@@ -27,6 +28,47 @@ export class PropertiesRepository {
       .select()
       .from(properties)
       .where(eq(properties.status, 'PUBLISHED'));
+  }
+
+  async search(filters: SearchPropertiesDto): Promise<Property[]> {
+    const conditions: SQL[] = [eq(properties.status, 'PUBLISHED')];
+
+    // Filter by city
+    if (filters.city?.trim()) {
+      conditions.push(ilike(properties.city, filters.city.trim()));
+    }
+
+    // Minimum nightly price
+    if (filters.minPrice !== undefined) {
+      conditions.push(
+        gte(properties.pricePerNight, filters.minPrice.toFixed(2)),
+      );
+    }
+
+    // Maximum nightly price
+    if (filters.maxPrice !== undefined) {
+      conditions.push(
+        lte(properties.pricePerNight, filters.maxPrice.toFixed(2)),
+      );
+    }
+
+    // Minimum guest capacity
+    if (filters.guests !== undefined) {
+      conditions.push(gte(properties.maxGuests, filters.guests));
+    }
+
+    // Pagination
+    const page = filters.page ?? 1;
+    const limit = filters.limit ?? 10;
+    const offset = (page - 1) * limit;
+
+    return this.connection.db
+      .select()
+      .from(properties)
+      .where(and(...conditions))
+      .orderBy(desc(properties.createdAt), desc(properties.id))
+      .limit(limit)
+      .offset(offset);
   }
 
   async findById(id: string): Promise<Property | undefined> {
